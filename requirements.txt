@@ -1,0 +1,10 @@
+# data manipulation
+pandas
+numpy
+
+# visualization
+matplotlib
+seaborn
+
+# timezone data
+airportsdata
