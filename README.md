@@ -1,100 +1,104 @@
 # Flight Delay Propagation Modeling
 
-This project models how flight delays propagate across an aircraft's daily sequence of flights using a discrete-time Markov chain. The workflow cleans and standardizes U.S. domestic on-time performance records, constructs per-aircraft operating-day chains, estimates transition probabilities between delay states, and computes the long-run stationary distribution.
+This project studies how delays carry from one flight leg to the next for the same aircraft. The core idea is to model each aircraft's operating day as a sequence of delay states, then estimate how likely it is to move between those states using a Markov chain.
 
-## Project Objective
+The full-year 2024 analysis is the main reference point in this repo because the 2025 sample was affected by an unprecedented federal government shutdown period, which makes that window less useful for broad comparison or generalization.
 
-Airline operations are highly interconnected: one delayed leg can affect the next flight assigned to the same aircraft. This repository quantifies that propagation effect by:
+## What This Repo Covers
 
-- Assigning each flight to a delay-related state.
+The analysis is split into two notebooks:
 
-- Building ordered flight sequences (chains) per aircraft per operating day.
-- Estimating the one-step transition matrix between states.
-- Computing the stationary distribution to characterize long-run system behavior.
+- `july_25_delay_analysis.ipynb`: baseline analysis on the July 2025 dataset
+- `2024_delay_analysis.ipynb`: full-year extension with monthly and airline-level comparisons
 
-## Dataset
+Both notebooks follow the same general pipeline:
 
-Source: BTS Marketing Carrier On-Time Performance data (July 2025)
+1. Check data quality and missingness patterns
+2. Standardize local times and convert schedule information to UTC for ordering
+3. Define an operational day (5:00 AM to 5:00 AM)
+4. Assign each flight to a delay state
+5. Build per-aircraft, per-day flight chains
+6. Estimate the one-step transition matrix
+7. Compute and visualize stationary distributions
+
+## Delay State Definitions
+
+States are encoded as follows:
+
+- `0`: On-time (`ARR_DELAY < 15`)
+- `1`: Delayed (`ARR_DELAY >= 15`)
+- `2`: Significant delay (`ARR_DELAY >= 60`)
+- `3`: Extreme departure delay (`DEP_DELAY >= 120`)
+- `4`: Cancelled flight
+- `5`: Diverted flight
+
+## Data
+
+Source: BTS Marketing Carrier On-Time Performance data
 
 - Public portal: https://www.transtats.bts.gov/tables.asp?QO_VQ=EFD&QO_anzr=Nv4yv0r
-- Local file in this repo: `data/flight_delays.csv`
+- Main local file: `data/flight_delays.csv`
+- Full-year monthly files: `data/2024_data/*.csv`
 
-Core fields used include:
+Key fields used include:
 
-- Flight date and local schedule times (`FL_DATE`, `CRS_DEP_TIME`, `CRS_ARR_TIME`)
+- Flight date and schedule fields (`FL_DATE`, `CRS_DEP_TIME`, `CRS_ARR_TIME`)
 - Actual timing and delays (`DEP_TIME`, `ARR_TIME`, `DEP_DELAY`, `ARR_DELAY`)
 - Operational outcomes (`CANCELLED`, `DIVERTED`)
 - Aircraft identifier (`TAIL_NUM`)
-- Routing metadata (`ORIGIN`, `DEST`)
-
-## Methodology Overview
-
-The notebook in `flight_delay_analysis.ipynb` follows this pipeline:
-
-1. Data quality and missingness analysis
-2. Time normalization (local timestamps -> UTC) for cross-timezone ordering
-3. Operating-day definition and chain assignment by `TAIL_NUM`
-4. State assignment for each flight
-5. Transition matrix estimation with empirical frequencies
-6. Network visualization of state transitions
-7. Stationary distribution estimation via eigen decomposition
-
-### State Definitions
-
-- `0`: On-time (`ARR_DELAY < 15` minutes)
-- `1`: Delayed (`ARR_DELAY >= 15` minutes)
-- `2`: Significant delay (`ARR_DELAY >= 60` minutes)
-- `3`: Extreme departure delay (`DEP_DELAY >= 120` minutes)
-- `4`: Cancelled
-- `5`: Diverted
+- Route metadata (`ORIGIN`, `DEST`)
+- Carrier identifier (`OP_CARRIER_AIRLINE_ID`)
 
 ## Repository Structure
 
 ```text
 Flight-Delay-Propagation-Modeling/
-├── flight_delay_analysis.ipynb   # Main analysis notebook
-├── README.md                     # Project documentation
-├── requirements.txt              # Python dependencies
+├── july_25_delay_analysis.ipynb
+├── 2024_delay_analysis.ipynb
+├── README.md
+├── requirements.txt
 └── data/
-	└── flight_delays.csv         # Input dataset
+	├── flight_delays.csv
+	└── 2024_data/
+		├── 2024_jan_flights.csv
+		├── ...
+		└── 2024_dec_flights.csv
 ```
 
 ## Setup
 
-### 1. Create and activate a virtual environment
+1. Create and activate a virtual environment:
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 ```
 
-### 2. Install dependencies
+2. Install dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. Launch Jupyter
+3. Launch Jupyter:
 
 ```bash
 jupyter notebook
 ```
 
-Open `flight_delay_analysis.ipynb` and run cells top-to-bottom.
+Then run either notebook top-to-bottom depending on whether you want the baseline or full-year analysis.
 
-## Outputs
+## Outputs You Can Expect
 
-The notebook produces:
+- Missingness diagnostics and data-quality checks
+- Departure and delay-time distribution plots
+- Chain-length distributions by aircraft-day
+- Transition matrices and transition network visualizations
+- Stationary distribution summaries
+- Monthly and airline comparison charts (in the 2024 notebook)
 
-- Missingness and distribution diagnostics
-- Delay-time visualizations
-- Chain-length distribution plots
-- Markov transition matrix for delay states
-- Directed graph of state transitions
-- Stationary distribution summary and pie chart
+## Notes for Interpretation
 
-## Interpretation Notes
-
-- Transition probabilities are empirical and specific to the selected time window and filters.
-- The stationary distribution is a model-based long-run equilibrium under the estimated transition dynamics.
-- Results can vary across months, carriers, and network composition.
+- Transition probabilities are empirical and reflect the chosen filters and time period.
+- Stationary distributions represent long-run equilibrium under the estimated transition matrix.
+- Results can shift across seasons, network mix, and airline operations.
