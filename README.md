@@ -37,8 +37,6 @@ States are encoded as follows:
 Source: BTS Marketing Carrier On-Time Performance data
 
 - Public portal: https://www.transtats.bts.gov/tables.asp?QO_VQ=EFD&QO_anzr=Nv4yv0r
-- Main local file: `data/flight_delays.csv`
-- Full-year monthly files: `data/2024_data/*.csv`
 
 Key fields used include:
 
